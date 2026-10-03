@@ -6,10 +6,10 @@ import {auth,db} from "./firebase";
 import "./styles.css";
 
 function App(){
- const [user,setUser]=useState(null),[profile,setProfile]=useState(null),[following,setFollowing]=useState([]),[view,setView]=useState("home"),[posts,setPosts]=useState([]),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
+ const [user,setUser]=useState(null),[profile,setProfile]=useState({username:"",displayName:"",bio:""}),[following,setFollowing]=useState([]),[view,setView]=useState("home"),[posts,setPosts]=useState([]),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
  useEffect(()=>onAuthStateChanged(auth,async u=>{setUser(u);if(u){await loadProfile(u.uid);await loadFollowing(u.uid)}else{setProfile(null);setFollowing([])}setLoading(false)}),[]);
  useEffect(()=>{if(user)loadPosts()},[user,following,refresh]);
- async function loadProfile(uid){const s=await getDoc(doc(db,"users",uid));if(s.exists())setProfile({id:s.id,...s.data()})}
+ async function loadProfile(uid){const s=await getDoc(doc(db,"users",uid));if(s.exists()){setProfile({id:s.id,...s.data()});return}const fallback={username:(auth.currentUser?.email?.split("@")[0]||"user").toLowerCase().replace(/[^a-z0-9_]/g,""),displayName:auth.currentUser?.displayName||auth.currentUser?.email?.split("@")[0]||"User",bio:"",createdAt:serverTimestamp()};await setDoc(doc(db,"users",uid),fallback,{merge:true});setProfile({id:uid,...fallback})}
  async function loadFollowing(uid){const s=await getDocs(query(collection(db,"follows"),where("followerId","==",uid)));setFollowing(s.docs.map(x=>x.data().followingId))}
  async function loadPosts(){const s=await getDocs(query(collection(db,"posts"),orderBy("createdAt","desc"),limit(50)));setPosts(s.docs.map(x=>({id:x.id,...x.data()})))}
  async function createPost(text){if(!text.trim())return;await addDoc(collection(db,"posts"),{authorId:user.uid,authorName:profile.displayName||profile.username,text:text.trim(),likeCount:0,commentCount:0,createdAt:serverTimestamp()});setRefresh(x=>x+1)}
