@@ -3,8 +3,7 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /users/{userId} {
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update, delete: if request.auth != null && request.auth.uid == userId;
+      allow create, update, delete: if request.auth != null && request.auth.uid == userId;
     }
     match /posts/{postId} {
       allow read: if true;
@@ -25,6 +24,26 @@ service cloud.firestore {
       allow read: if true;
       allow create: if request.auth != null && request.resource.data.followerId == request.auth.uid;
       allow delete: if request.auth != null && resource.data.followerId == request.auth.uid;
+    }
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null && resource.data.recipientId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.actorId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.recipientId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.recipientId == request.auth.uid;
+    }
+    match /hiddenPosts/{hiddenId} {
+      allow read, create, delete: if request.auth != null && (resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid);
+    }
+    match /reports/{reportId} {
+      allow create: if request.auth != null && request.resource.data.reporterId == request.auth.uid;
+      allow read: if request.auth != null && resource.data.reporterId == request.auth.uid;
+      allow update, delete: if false;
+    }
+    match /playlists/{playlistId} {
+      allow read, create, update, delete: if request.auth != null && (resource.data.userId == request.auth.uid || request.resource.data.userId == request.auth.uid);
+      match /items/{itemId} {
+        allow read, create, update, delete: if request.auth != null && get(/databases/$(database)/documents/playlists/$(playlistId)).data.userId == request.auth.uid;
+      }
     }
     match /stats/{statId} { allow read: if true; allow write: if false; }
   }
