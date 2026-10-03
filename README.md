@@ -1,4 +1,4 @@
-# Simple Social v0.4.1
+# Simple Social v0.4.2
 
 Simple Social keeps Firebase Auth/Firestore for the social data and uses a personal Google Drive account for uploaded images and videos.
 
@@ -34,3 +34,7 @@ The server creates a `Simple Social Media` folder in that Drive automatically. U
 - Images and videos only
 
 Firebase Storage is not required by this version.
+
+
+### Media display fix
+Drive media is now streamed through the Render server at `/api/media/:fileId`, so uploaded images and videos render correctly in posts instead of opening as Drive download links.
