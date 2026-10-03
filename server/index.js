@@ -143,13 +143,49 @@ app.post("/api/media/upload", requireFirebaseUser, upload.array("files", 10), as
       });
       const fileId = created.data.id;
       await drive.permissions.create({ fileId, requestBody: { role: "reader", type: "anyone" } });
-      media.push({ fileId, name: created.data.name, type: file.mimetype.startsWith("video/") ? "video" : "image", url: `https://drive.google.com/uc?export=download&id=${fileId}` });
+      media.push({ fileId, name: created.data.name, type: file.mimetype.startsWith("video/") ? "video" : "image", url: `/api/media/${fileId}` });
     }
     res.json({ media });
   } catch (error) { console.error("Drive upload failed:", error); res.status(500).json({ error: error.message || "Google Drive upload failed." }); }
 });
 
-app.get("/api/config", (_req, res) => res.json({ appName: "Simple Social", version: "0.4.1", mediaStorage: "google-drive" }));
+// Stream media through Render instead of exposing a Drive download URL.
+// This makes Drive-hosted images/videos usable by normal <img>/<video> elements.
+app.get("/api/media/:fileId", async (req, res) => {
+  try {
+    const drive = await getDriveClient();
+    const meta = await drive.files.get({ fileId: req.params.fileId, fields: "id,name,mimeType,size,trashed" });
+    if (!meta.data || meta.data.trashed) return res.status(404).send("Media not found.");
+
+    const mimeType = meta.data.mimeType || "application/octet-stream";
+    res.setHeader("Content-Type", mimeType);
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    if (meta.data.size) res.setHeader("Content-Length", meta.data.size);
+
+    const range = req.headers.range;
+    const response = await drive.files.get(
+      { fileId: req.params.fileId, alt: "media" },
+      { responseType: "stream", headers: range ? { Range: range } : undefined }
+    );
+
+    if (range && response.headers["content-range"]) {
+      res.status(206);
+      res.setHeader("Content-Range", response.headers["content-range"]);
+      if (response.headers["content-length"]) res.setHeader("Content-Length", response.headers["content-length"]);
+      res.setHeader("Accept-Ranges", "bytes");
+    } else {
+      res.setHeader("Accept-Ranges", "bytes");
+    }
+
+    response.data.on("error", () => { if (!res.headersSent) res.status(500); res.end(); });
+    response.data.pipe(res);
+  } catch (error) {
+    console.error("Drive media stream failed:", error.message);
+    res.status(404).send("Media could not be loaded.");
+  }
+});
+
+app.get("/api/config", (_req, res) => res.json({ appName: "Simple Social", version: "0.4.2", mediaStorage: "google-drive" }));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
