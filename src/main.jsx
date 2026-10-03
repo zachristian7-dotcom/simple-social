@@ -14,7 +14,35 @@ async function uploadMedia(files,userId){const chosen=Array.from(files).slice(0,
 
 function App(){
  const[user,setUser]=useState(null),[profile,setProfile]=useState({username:"",displayName:"",bio:""}),[following,setFollowing]=useState([]),[view,setView]=useState("home"),[posts,setPosts]=useState([]),[hidden,setHidden]=useState([]),[notifications,setNotifications]=useState([]),[playlists,setPlaylists]=useState([]),[loading,setLoading]=useState(true),[refresh,setRefresh]=useState(0);
- useEffect(()=>onAuthStateChanged(auth,async u=>{setUser(u);if(u){await loadProfile(u.uid);await loadFollowing(u.uid);await loadHidden(u.uid);await loadNotifications(u.uid);await loadPlaylists(u.uid)}else{setProfile({username:"",displayName:"",bio:""});setFollowing([])}setLoading(false)}),[]);
+ useEffect(()=>{
+  const unsubscribe=onAuthStateChanged(auth,async u=>{
+   setUser(u);
+   try{
+    if(u){
+     const results=await Promise.allSettled([
+      loadProfile(u.uid),
+      loadFollowing(u.uid),
+      loadHidden(u.uid),
+      loadNotifications(u.uid),
+      loadPlaylists(u.uid)
+     ]);
+     const failed=results.find(r=>r.status==="rejected");
+     if(failed) console.error("Some account data could not be loaded:",failed.reason);
+    }else{
+     setProfile({username:"",displayName:"",bio:""});
+     setFollowing([]);
+     setHidden([]);
+     setNotifications([]);
+     setPlaylists([]);
+    }
+   }catch(error){
+    console.error("Startup error:",error);
+   }finally{
+    setLoading(false);
+   }
+  });
+  return unsubscribe;
+ },[]);
  useEffect(()=>{if(user)loadPosts()},[user,following,refresh]);
  async function loadProfile(uid){const s=await getDoc(doc(db,"users",uid));if(s.exists()){setProfile({id:s.id,...s.data()});return}const fallback={username:(auth.currentUser?.email?.split("@")[0]||"user").toLowerCase().replace(/[^a-z0-9_]/g,""),displayName:auth.currentUser?.displayName||auth.currentUser?.email?.split("@")[0]||"User",bio:"",createdAt:serverTimestamp()};await setDoc(doc(db,"users",uid),fallback,{merge:true});setProfile({id:uid,...fallback})}
  async function loadFollowing(uid){const s=await getDocs(query(collection(db,"follows"),where("followerId","==",uid)));setFollowing(s.docs.map(x=>x.data().followingId))}
