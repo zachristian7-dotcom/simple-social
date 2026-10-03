@@ -1,63 +1,17 @@
-# Simple Social v0.1
+# Simple Social v0.3.1
 
-A deliberately small social-media starter using:
+A basic Firebase + Render social site with a complete visual redesign.
 
-- React + Vite
-- Node + Express on Render
-- Firebase Authentication
-- Cloud Firestore for users, posts, likes, follows, comments, and stats
+## v0.3.1 visual overhaul
+- New responsive desktop sidebar and mobile bottom navigation
+- Redesigned top bar and branding
+- Modern typography using DM Sans + Manrope
+- Cleaner post cards, interaction buttons, comments, and avatars
+- Redesigned composer with character counter
+- New profile hero, avatar treatment, stats, and edit form
+- Redesigned Discover/search experience and user cards
+- New polished login/signup screen with soft background effects
+- Empty states and loading state redesigned
+- Better spacing, hierarchy, borders, shadows, hover states, and mobile layout
 
-## 1. Firebase
-
-Create a Firebase project.
-
-Enable:
-- Authentication → Email/Password
-- Firestore Database
-
-Create a Firebase Web App and copy its config into `.env`.
-
-For the Render server, create a Firebase service account and store its JSON contents in the Render environment variable `FIREBASE_SERVICE_ACCOUNT_JSON`.
-
-## 2. Local setup
-
-```bash
-npm install
-cp .env.example .env
-npm run dev
-```
-
-Frontend: http://localhost:5173
-Server: http://localhost:3000
-
-## 3. Render
-
-Create a Web Service from this repository.
-
-Build command:
-```bash
-npm install && npm run build
-```
-
-Start command:
-```bash
-npm start
-```
-
-Add the Firebase `VITE_*` variables and `FIREBASE_SERVICE_ACCOUNT_JSON`.
-
-The Express server serves the Vite `dist` folder after the build.
-
-## Firestore collections
-
-- users
-- posts
-- comments
-- follows
-- stats
-
-The browser uses Firebase Auth and Firestore directly for the MVP. The Render server provides a health endpoint and can be expanded later for server-only operations.
-
-## Important
-
-Before putting this on a public domain, tighten the Firestore rules. The included rules are intended as a starting point, not a complete production moderation/security system.
+The Firebase collections, authentication flow, Render server, and core v0.2.1 functionality remain in place.
