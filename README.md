@@ -38,3 +38,6 @@ Firebase Storage is not required by this version.
 
 ### Media display fix
 Drive media is now streamed through the Render server at `/api/media/:fileId`, so uploaded images and videos render correctly in posts instead of opening as Drive download links.
+
+## v0.5.0 like-permission fix
+The Firestore rules allow authenticated users to change only the `likeCount` field when the same transaction creates/removes their deterministic like document. Deploy the included `firestore.rules` in the Firebase Console before testing likes.
