@@ -1,43 +1,25 @@
-# Simple Social v0.4.2
+# Simple Social v1.1
 
-Simple Social keeps Firebase Auth/Firestore for the social data and uses a personal Google Drive account for uploaded images and videos.
+Major rebuild covering v1.0 Foundation + v1.1 Social.
 
-## Render environment variables
+## Included
+- React/Vite + Firebase Auth/Firestore
+- Render/Express backend with existing Google Drive media pipeline
+- Real route-based navigation without a router dependency
+- Home feed, Explore, profiles, notifications, settings
+- Responsive desktop/mobile navigation
+- Post composer with up to 10 images/videos
+- @mentions and #hashtags stored on posts
+- Hashtag discovery and trending tags
+- Follow/unfollow and user search
+- Likes, replies, reposts, bookmarks
+- Block/mute filtering in the feed
+- Notification center + notification preferences
+- Dark/light/system preference storage
+- Firestore rules for the expanded data model
 
-Keep your existing Firebase variables and add:
-
-- `GOOGLE_CLIENT_ID` — Google OAuth web client ID
-- `GOOGLE_CLIENT_SECRET` — Google OAuth client secret (keep private)
-- `GOOGLE_REDIRECT_URI` — `https://simple-social-031u.onrender.com/api/auth/google/callback`
-- `GOOGLE_SETUP_KEY` — a long random private setup key; use it once to authorize the site's Drive account, then remove it from Render
-
-`FIREBASE_SERVICE_ACCOUNT_JSON` is still required for the Render server because it verifies Firebase ID tokens and securely stores the Google Drive refresh token in the `appConfig/googleDrive` Firestore document.
-
-## Google OAuth setup
-
-1. Enable Google Drive API in the Google Cloud project.
-2. Create a Web application OAuth client.
-3. Add the exact redirect URI above.
-4. If the OAuth app is External and in Testing, add the Drive owner's Google account as a test user in Google Auth Platform → Audience.
-5. Deploy this version.
-6. Add the environment variables in Render.
-7. Visit `https://simple-social-031u.onrender.com/api/auth/google?key=YOUR_GOOGLE_SETUP_KEY` while the setup key exists.
-8. Sign in to the Google account whose Drive should store media and approve Drive access.
-9. After the success page appears, remove `GOOGLE_SETUP_KEY` from Render and redeploy.
-
-The server creates a `Simple Social Media` folder in that Drive automatically. Uploaded media is stored there and the post document stores only Drive metadata/URLs.
-
-## Media limits
-
-- Up to 10 files per post
-- 30 MB maximum per file
-- Images and videos only
-
-Firebase Storage is not required by this version.
-
-
-### Media display fix
-Drive media is now streamed through the Render server at `/api/media/:fileId`, so uploaded images and videos render correctly in posts instead of opening as Drive download links.
-
-## v0.5.0 like-permission fix
-The Firestore rules allow authenticated users to change only the `likeCount` field when the same transaction creates/removes their deterministic like document. Deploy the included `firestore.rules` in the Firebase Console before testing likes.
+## Deploy
+1. Replace the existing source with this project.
+2. Keep the existing Render environment variables.
+3. Deploy Firestore rules from `firestore.rules`.
+4. Run `npm install` then `npm run build` locally to verify, or let Render build it.
